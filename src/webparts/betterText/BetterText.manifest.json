@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "b35b58ef-9120-4317-871a-14b772328e9a",
+  "alias": "BetterText",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart"
+  ],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": {
+        "default": "Advanced"
+      },
+      "title": {
+        "default": "Better Text"
+      },
+      "description": {
+        "default": "Better Text"
+      },
+      "officeFabricIconFontName": "TextField",
+      "properties": {
+        "content": "<p>Start writing with Better Text. Use the toolbar to format, pick any Google font, and fine-tune leading and letter spacing.</p>",
+        "fontFamily": "",
+        "lineHeight": 1.4,
+        "letterSpacing": 0,
+        "customCss": ""
+      }
+    }
+  ]
+}

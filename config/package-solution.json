@@ -1,0 +1,22 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "Better Text",
+    "id": "3d74a11f-64df-4ea7-88cb-f8426ce19e55",
+    "version": "0.1.0.0",
+    "includeClientSideAssets": false,
+    "skipFeatureDeployment": false,
+    "isDomainIsolated": false,
+    "features": [
+      {
+        "title": "Better Text Feature",
+        "description": "Activates Better Text.",
+        "id": "00ccb569-b6cb-4c07-b27b-7f1e7e58afb3",
+        "version": "0.1.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/better-text.sppkg"
+  }
+}

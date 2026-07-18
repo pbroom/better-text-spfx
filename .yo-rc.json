@@ -1,0 +1,17 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.14.0",
+    "version": "1.21.1",
+    "libraryName": "better-text-spfx",
+    "libraryId": "3d74a11f-64df-4ea7-88cb-f8426ce19e55",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "Better Text",
+    "solutionShortDescription": "Better Text",
+    "skipFeatureDeployment": false,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
