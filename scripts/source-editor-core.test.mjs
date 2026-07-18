@@ -5,7 +5,7 @@ import {
   getSourceDiagnostics,
   measureSourceBytes,
   shouldCommitSource
-} from '../src/vendor/source-editor-core/index.ts';
+} from '../src/vendor/source-editor/sourceEditorCore.ts';
 
 test('measures source as UTF-8 bytes', () => {
   assert.equal(measureSourceBytes('abc'), 3);

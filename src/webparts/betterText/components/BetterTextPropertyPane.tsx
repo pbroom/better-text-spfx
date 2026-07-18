@@ -19,7 +19,10 @@ import {
   filterGoogleFontPickerOptions,
   themeDefaultFontLabel
 } from '../../../shared/googleFonts';
-import { SourceEditorField, SourceEditorTarget } from './SourceEditorField';
+import {
+  SourceEditorField,
+  SourceEditorTarget
+} from '../../../vendor/source-editor/SourceEditorField';
 
 export interface BetterTextPropertyPaneProps {
   properties: BetterTextProperties;
