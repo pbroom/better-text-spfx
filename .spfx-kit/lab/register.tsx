@@ -110,9 +110,11 @@ const webPart: LabWebPart<BetterTextLabProps> = {
       getPatch: (value, values) => createControlPatch('letterSpacing', value, values)
     },
     {
-      type: 'cssEditor',
+      type: 'sourceEditor',
       name: 'customCss',
       label: 'Custom CSS/SCSS',
+      language: 'scss',
+      commitMode: 'immediate',
       minHeight: 190,
       getValue: (values) => String(values.customCss || ''),
       getPatch: (value, values) => createCssPatch(String(value || ''), values),

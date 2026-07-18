@@ -2,16 +2,40 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import * as bundledMonaco from 'monaco-editor/esm/vs/editor/editor.api';
 import 'monaco-editor/esm/vs/basic-languages/scss/scss.contribution';
+import {
+  getSourceDiagnostics,
+  shouldCommitSource,
+  SourceEditorCommitMode,
+  SourceEditorDiagnostic,
+  SourceEditorLanguage,
+  SourceEditorValidator
+} from '../../../vendor/source-editor-core';
 
-export interface CssEditorFieldProps {
+export interface SourceEditorFieldProps {
   label: string;
+  language: SourceEditorLanguage;
   value: string;
   description?: string;
   placeholder?: string;
-  targets?: CssEditorTarget[];
-  targetComment?: string;
+  config?: SourceEditorFieldConfig;
   onChange: (value: string) => void;
-  onTargetRename?: (target: CssEditorTarget, nextSelector: string, nextValue: string) => void;
+}
+
+export interface SourceEditorFieldConfig {
+  commitMode?: SourceEditorCommitMode;
+  maxBytes?: number;
+  targetComment?: string;
+  targets?: SourceEditorTarget[];
+  validate?: SourceEditorValidator;
+  onTargetRename?: (target: SourceEditorTarget, nextSelector: string, nextValue: string) => void;
+}
+
+export interface SourceEditorTarget {
+  label: string;
+  selector: string;
+  snippet: string;
+  editable?: boolean;
+  renameLabel?: string;
 }
 
 let configuredCssIntellisense = false;
@@ -32,7 +56,7 @@ Better Text SCSS targets:
 .better-text - wrapper around the rich text content.
 .better-text__content - rich text body, font family, leading, and letter spacing.
 */`;
-const defaultCssEditorTargets: CssEditorTarget[] = [
+const defaultCssEditorTargets: SourceEditorTarget[] = [
   {
     label: ':host',
     selector: ':host',
@@ -49,12 +73,15 @@ const defaultCssEditorTargets: CssEditorTarget[] = [
     snippet: '.better-text__content {\n  font-family: "Segoe UI", system-ui, sans-serif;\n  line-height: 1.4;\n  letter-spacing: 0px;\n}'
   }
 ];
-let latestCssEditorTargets: CssEditorTarget[] = defaultCssEditorTargets;
+let latestCssEditorTargets: SourceEditorTarget[] = defaultCssEditorTargets;
 const minFloatingWidth = 360;
 const minFloatingHeight = 260;
 
-export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (props) => {
+export const SourceEditorField: React.FunctionComponent<SourceEditorFieldProps> = (props) => {
   const [draft, setDraft] = React.useState(props.value || '');
+  const [sourceDiagnostics, setSourceDiagnostics] = React.useState<SourceEditorDiagnostic[]>(() =>
+    getSourceDiagnostics(props.value || '', props.config?.maxBytes, props.config?.validate)
+  );
   const [editorReady, setEditorReady] = React.useState(false);
   const [floatingEditorReady, setFloatingEditorReady] = React.useState(false);
   const [floatingOpen, setFloatingOpen] = React.useState(false);
@@ -66,8 +93,13 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
   );
   const floatingPanelRef = React.useRef<HTMLDivElement | null>(null);
   const floatingEditorRef = React.useRef<any>(null);
-  const cssEditorTargets = props.targets?.length ? props.targets : defaultCssEditorTargets;
-  const cssTargetComment = props.targetComment || defaultCssTargetComment;
+  const cssEditorTargets =
+    props.language === 'scss'
+      ? props.config?.targets?.length
+        ? props.config.targets
+        : defaultCssEditorTargets
+      : [];
+  const cssTargetComment = props.config?.targetComment || defaultCssTargetComment;
   const closeShortcutLabel = React.useMemo(() => getCloseShortcutLabel(), []);
 
   const closeFloatingEditor = React.useCallback((): void => {
@@ -95,8 +127,10 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
   }, [closeFloatingEditor, floatingOpen]);
 
   React.useEffect(() => {
-    setDraft(props.value || '');
-  }, [props.value]);
+    const nextValue = props.value || '';
+    setDraft(nextValue);
+    setSourceDiagnostics(getSourceDiagnostics(nextValue, props.config?.maxBytes, props.config?.validate));
+  }, [props.config?.maxBytes, props.config?.validate, props.value]);
 
   React.useEffect(() => {
     const readyDiagnostic = createMonacoDiagnostic('ready');
@@ -166,8 +200,12 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
   };
 
   const updateValue = (value: string): void => {
+    const diagnostics = getSourceDiagnostics(value, props.config?.maxBytes, props.config?.validate);
     setDraft(value);
-    props.onChange(value);
+    setSourceDiagnostics(diagnostics);
+    if (shouldCommitSource(props.config?.commitMode, diagnostics)) {
+      props.onChange(value);
+    }
   };
 
   const startFloatingMove = (event: React.PointerEvent<HTMLDivElement>): void => {
@@ -187,7 +225,7 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
     setPointerState(createPointerInteraction('resize', event, floatingPanelRef.current, floatingRect, direction));
   };
 
-  const useFloatingTarget = (target: CssEditorTarget): void => {
+  const useFloatingTarget = (target: SourceEditorTarget): void => {
     setEditingTarget(null);
     const editor = floatingEditorRef.current;
     const currentValue = editor?.getValue?.() || draft || '';
@@ -201,11 +239,11 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
     insertCssTarget(editor, currentValue, target, cssTargetComment, updateValue);
   };
 
-  const startTargetEdit = (target: CssEditorTarget): void => {
+  const startTargetEdit = (target: SourceEditorTarget): void => {
     setEditingTarget({ selector: target.selector, value: target.selector });
   };
 
-  const commitTargetEdit = (target: CssEditorTarget, value: string): void => {
+  const commitTargetEdit = (target: SourceEditorTarget, value: string): void => {
     const nextSelector = normalizeEditableTargetSelector(value, target.selector);
     setEditingTarget(null);
 
@@ -217,8 +255,14 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
     const currentValue = editor?.getValue?.() || draft || '';
     const nextValue = replaceCssTargetSelector(currentValue, target.selector, nextSelector);
 
-    if (props.onTargetRename) {
-      props.onTargetRename(target, nextSelector, nextValue);
+    if (props.config?.onTargetRename) {
+      const diagnostics = getSourceDiagnostics(nextValue, props.config.maxBytes, props.config.validate);
+      setDraft(nextValue);
+      setSourceDiagnostics(diagnostics);
+      if (!shouldCommitSource(props.config.commitMode, diagnostics)) {
+        return;
+      }
+      props.config.onTargetRename(target, nextSelector, nextValue);
       return;
     }
 
@@ -240,6 +284,18 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
         </button>
       </div>
       {props.description && <p className="bt-css-editor__description">{props.description}</p>}
+      {sourceDiagnostics.length > 0 && (
+        <div aria-live="polite" className="bt-css-editor__source-diagnostics">
+          {sourceDiagnostics.map((diagnostic, index) => (
+            <div
+              className={`bt-css-editor__source-diagnostic bt-css-editor__source-diagnostic--${diagnostic.level}`}
+              key={`${diagnostic.level}-${index}`}
+            >
+              {diagnostic.message}
+            </div>
+          ))}
+        </div>
+      )}
       {shouldShowMonacoDiagnostic(monacoDiagnostic) && (
         <MonacoDiagnosticNotice diagnostic={monacoDiagnostic} />
       )}
@@ -259,11 +315,11 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
         <div className={`bt-css-editor__monaco ${editorReady ? 'bt-css-editor__monaco--ready' : ''}`}>
           <BundledMonacoEditor
             height="190px"
-            language="scss"
-            path="better-text.custom.scss"
+            language={props.language}
+            path={`better-text.custom.${props.language}`}
             theme="vs-dark"
             value={draft}
-            beforeMount={(monaco) => configureCssEditorMonaco(monaco, cssEditorTargets)}
+            beforeMount={(monaco) => configureSourceEditorMonaco(monaco, props.language, cssEditorTargets)}
             onMount={(editor) => handleCssEditorMount(editor, () => setEditorReady(true))}
             onChange={(value) => {
               const nextValue = value || '';
@@ -414,11 +470,13 @@ export const CssEditorField: React.FunctionComponent<CssEditorFieldProps> = (pro
             <div className={`bt-css-editor__monaco ${floatingEditorReady ? 'bt-css-editor__monaco--ready' : ''}`}>
                 <BundledMonacoEditor
                   height="100%"
-                  language="scss"
-                  path="better-text.custom.floating.scss"
+                  language={props.language}
+                  path={`better-text.custom.floating.${props.language}`}
                   theme="vs-dark"
                   value={draft}
-                  beforeMount={(monaco) => configureCssEditorMonaco(monaco, cssEditorTargets)}
+                  beforeMount={(monaco) =>
+                    configureSourceEditorMonaco(monaco, props.language, cssEditorTargets)
+                  }
                   onMount={(editor) => {
                     floatingEditorRef.current = editor;
                   handleCssEditorMount(editor, () => setFloatingEditorReady(true), closeFloatingEditor);
@@ -503,14 +561,6 @@ interface BundledMonacoEditorProps {
   onMount: (editor: bundledMonaco.editor.IStandaloneCodeEditor) => void;
   onChange: (value: string | undefined) => void;
   options: bundledMonaco.editor.IStandaloneEditorConstructionOptions;
-}
-
-interface CssEditorTarget {
-  label: string;
-  selector: string;
-  snippet: string;
-  editable?: boolean;
-  renameLabel?: string;
 }
 
 type MonacoDiagnosticStatus = 'not-configured' | 'loading' | 'slow' | 'ready' | 'error';
@@ -708,7 +758,14 @@ function copyMonacoDiagnostic(diagnostic: MonacoDiagnostic): void {
   navigator.clipboard.writeText(JSON.stringify(diagnostic, null, 2)).catch(() => undefined);
 }
 
-function configureCssEditorMonaco(monaco: any, targets: CssEditorTarget[]): void {
+function configureSourceEditorMonaco(
+  monaco: any,
+  language: SourceEditorLanguage,
+  targets: SourceEditorTarget[]
+): void {
+  if (language !== 'scss') {
+    return;
+  }
   latestCssEditorTargets = targets;
   configureCssLanguage(monaco);
   registerBetterTextCompletions(monaco);
@@ -773,7 +830,7 @@ function installTabTraversalGuard(editor: any): void {
   editor.onDidDispose?.(() => editorNode.removeEventListener('keydown', preventBrowserTabTraversal, true));
 }
 
-function appendCssTarget(source: string, target: CssEditorTarget, targetComment: string): string {
+function appendCssTarget(source: string, target: SourceEditorTarget, targetComment: string): string {
   const withComment = ensureCssTargetComment(source, targetComment);
   return `${withComment.trimEnd()}\n\n${target.snippet}\n`;
 }
@@ -781,7 +838,7 @@ function appendCssTarget(source: string, target: CssEditorTarget, targetComment:
 function insertCssTarget(
   editor: any,
   source: string,
-  target: CssEditorTarget,
+  target: SourceEditorTarget,
   targetComment: string,
   onChange: (value: string) => void
 ): void {
@@ -1005,7 +1062,7 @@ function registerBetterTextCompletions(monaco: any): void {
   });
 }
 
-function createSelectorSuggestions(monaco: any, range: any, targets: CssEditorTarget[]): any[] {
+function createSelectorSuggestions(monaco: any, range: any, targets: SourceEditorTarget[]): any[] {
   const snippetRule = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
   return targets.map((target) => ({
     label: target.selector,
@@ -1274,6 +1331,27 @@ const editorCss = `.bt-css-editor {
   background: transparent;
   font: inherit;
   cursor: pointer;
+}
+
+.bt-css-editor__source-diagnostics {
+  display: grid;
+  gap: 4px;
+}
+
+.bt-css-editor__source-diagnostic {
+  border: 1px solid #fbbf24;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #78350f;
+  background: #fffbeb;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.bt-css-editor__source-diagnostic--error {
+  border-color: #fca5a5;
+  color: #7f1d1d;
+  background: #fef2f2;
 }
 
 .bt-css-editor__popout,

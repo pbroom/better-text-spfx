@@ -19,7 +19,7 @@ import {
   filterGoogleFontPickerOptions,
   themeDefaultFontLabel
 } from '../../../shared/googleFonts';
-import { CssEditorField } from './CssEditorField';
+import { SourceEditorField, SourceEditorTarget } from './SourceEditorField';
 
 export interface BetterTextPropertyPaneProps {
   properties: BetterTextProperties;
@@ -53,7 +53,7 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
     applyValues({ ...parsed, customCss });
   };
 
-  const renameTarget = (_target: CssEditorTarget, nextSelector: string, nextValue: string): void => {
+  const renameTarget = (_target: SourceEditorTarget, nextSelector: string, nextValue: string): void => {
     const nextInstanceClassName = normalizeBetterTextInstanceClassName(nextSelector, values.instanceClassName);
     const customCss = renameBetterTextInstanceClassInCss(nextValue, values.instanceClassName, nextInstanceClassName);
     const parsed = parseBetterTextPropertiesFromCss(customCss, {
@@ -100,27 +100,23 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
               onChange={(letterSpacing) => applyControlPatch({ letterSpacing })}
             />
           </div>
-          <CssEditorField
+          <SourceEditorField
             label="Custom CSS/SCSS"
-            targetComment={createBetterTextCssTargetComment(values.instanceClassName)}
-            targets={createBetterTextCssTargets(values)}
+            language="scss"
             value={values.customCss}
+            config={{
+              commitMode: 'immediate',
+              targetComment: createBetterTextCssTargetComment(values.instanceClassName),
+              targets: createBetterTextCssTargets(values),
+              onTargetRename: renameTarget
+            }}
             onChange={applyCustomCss}
-            onTargetRename={renameTarget}
           />
         </section>
       </div>
     </FluentProvider>
   );
 };
-
-interface CssEditorTarget {
-  label: string;
-  selector: string;
-  snippet: string;
-  editable?: boolean;
-  renameLabel?: string;
-}
 
 interface FontFamilyFieldProps {
   value: string;
