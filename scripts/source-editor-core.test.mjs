@@ -46,4 +46,8 @@ test('valid-only commits allow warnings and reject errors', () => {
     shouldCommitSource('immediate', [{ level: 'error', message: 'Invalid source.' }]),
     true
   );
+  assert.equal(
+    shouldCommitSource(undefined, [{ level: 'error', message: 'Invalid source.' }]),
+    true
+  );
 });
