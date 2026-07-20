@@ -2,6 +2,7 @@
   "name": "better-text-spfx",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Better Text SPFx web part with rich text formatting, Google Fonts, leading, letter spacing, and synced custom CSS.",
   "engines": {
     "node": ">=22.14.0 <23.0.0"
