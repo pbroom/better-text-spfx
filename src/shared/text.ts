@@ -6,6 +6,7 @@ import {
 
 export interface BetterTextProperties {
   content: string;
+  textStyleClassName: string;
   fontFamily: string;
   fontSize: number;
   fontSizeUnit: BetterTextLengthUnit;
@@ -28,6 +29,14 @@ export interface BetterTextCssTarget {
   renameLabel?: string;
 }
 
+export interface BetterTextCustomStyle {
+  className: string;
+  label: string;
+}
+
+export const betterTextCustomStylePrefix = 'bt-style--';
+const betterTextCustomStyleLimit = 50;
+const betterTextCustomStylePattern = /^bt-style--[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const betterTextFontSizeRange = { min: 0.1, max: 512, step: 0.1 };
 export const betterTextFontWeightOptions = [
   { label: 'Thin 100', value: '100' },
@@ -45,6 +54,7 @@ export const betterTextLetterSpacingRange = { min: -100, max: 100, step: 0.1 };
 
 export const defaultBetterTextProperties: BetterTextProperties = {
   content: '<p>Start writing with Better Text.</p>',
+  textStyleClassName: '',
   fontFamily: '',
   fontSize: 17,
   fontSizeUnit: 'px',
@@ -63,6 +73,7 @@ export function normalizeBetterTextProperties(
 ): BetterTextProperties {
   return {
     content: normalizeContent(properties.content),
+    textStyleClassName: normalizeBetterTextStyleClassName(properties.textStyleClassName),
     fontFamily: normalizeFontFamily(properties.fontFamily),
     fontSize: clampRangeNumber(
       properties.fontSize,
@@ -98,14 +109,16 @@ export function normalizeBetterTextProperties(
 
 export function createBetterTextCss(customCss = ''): string {
   const normalized = normalizeCustomCss(customCss);
-  const compiled = compileBetterTextScss(normalized);
+  const compiled = strengthenBetterTextCustomStyleSelectors(compileBetterTextScss(normalized));
   return `${betterTextBaseCss}${compiled ? `\n\n/* Custom CSS/SCSS */\n${compiled}` : ''}`;
 }
 
 export function createBetterTextControlCss(properties: Partial<BetterTextProperties> = {}): string {
   const normalized = normalizeBetterTextProperties(properties);
   return ensureBetterTextCssTargetComment(
-    createRule('.better-text__content', createContentDeclarations(normalized)),
+    `${createRule('.better-text__content', createContentDeclarations(normalized))}
+
+${betterTextStarterCustomStyles}`,
     normalized.instanceClassName
   );
 }
@@ -131,6 +144,7 @@ export function parseBetterTextPropertiesFromCss(
 
   return normalizeBetterTextProperties({
     content: fallbackProperties.content,
+    textStyleClassName: fallbackProperties.textStyleClassName,
     fontFamily: parsedFontFamily === undefined
       ? fallbackProperties.fontFamily || defaultBetterTextProperties.fontFamily
       : parsedFontFamily,
@@ -173,6 +187,44 @@ export function compileBetterTextScss(source: string | undefined): string {
   });
   const substituted = withoutVariables.replace(/\$([A-Za-z0-9_-]+)/g, (_match, name: string) => variables[name] || '');
   return flattenNestedScss(substituted);
+}
+
+export function discoverBetterTextCustomStyles(css: string | undefined): BetterTextCustomStyle[] {
+  const source = stripCssComments(normalizeCustomCss(css));
+  const compiledCss = compileBetterTextScss(css);
+  const discovered: BetterTextCustomStyle[] = [];
+  const seen = new Set<string>();
+  [source, compiledCss].forEach((selectorSource) => {
+    const rulePattern = /([^{}]+)\{/g;
+    let ruleMatch = rulePattern.exec(selectorSource);
+
+    while (ruleMatch && discovered.length < betterTextCustomStyleLimit) {
+      const selector = stripCssQuotedStrings(ruleMatch[1]);
+      const classPattern = /\.(bt-style--[a-z0-9]+(?:-[a-z0-9]+)*)(?=$|[^-_A-Za-z0-9])/g;
+      let classMatch = classPattern.exec(selector);
+
+      while (classMatch && discovered.length < betterTextCustomStyleLimit) {
+        const className = normalizeBetterTextStyleClassName(classMatch[1]);
+        if (className && !seen.has(className)) {
+          seen.add(className);
+          discovered.push({
+            className,
+            label: createBetterTextCustomStyleLabel(className)
+          });
+        }
+        classMatch = classPattern.exec(selector);
+      }
+
+      ruleMatch = rulePattern.exec(selectorSource);
+    }
+  });
+
+  return discovered;
+}
+
+export function normalizeBetterTextStyleClassName(value: string | undefined): string {
+  const next = typeof value === 'string' ? value.trim().replace(/^\./, '') : '';
+  return next.length <= 64 && betterTextCustomStylePattern.test(next) ? next : '';
 }
 
 export function syncBetterTextCssFromProperties(
@@ -244,6 +296,7 @@ Better Text SCSS targets:
 .better-text - wrapper around the rich text content.
 .better-text__content - rich text body, font family, size, weight, leading, and letter spacing.
 .${normalizedInstanceClassName} - generated instance class on this text web part only.
+.bt-style--<name> - opt-in text style preset shown in the Text style pickers.
 */`;
 }
 
@@ -399,6 +452,37 @@ function ensureBetterTextCssTargetComment(css: string, instanceClassName?: strin
 
 function stripCssComments(css: string): string {
   return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
+function stripCssQuotedStrings(value: string): string {
+  return value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
+}
+
+export function createBetterTextCustomStyleLabel(className: string): string {
+  const slug = className.slice(betterTextCustomStylePrefix.length).replace(/-/g, ' ');
+  return `${slug.charAt(0).toUpperCase()}${slug.slice(1)}`;
+}
+
+function strengthenBetterTextCustomStyleSelectors(css: string): string {
+  return css.replace(/([^{}]+)\{/g, (rule, selector: string) => {
+    const strengthened = replaceOutsideCssQuotedStrings(selector, (unquotedSelector) =>
+      unquotedSelector.replace(
+        /\.bt-style--[a-z0-9]+(?:-[a-z0-9]+)*(?=$|[^-_A-Za-z0-9])/g,
+        (classSelector) => `${classSelector}${classSelector}`
+      )
+    );
+    return `${strengthened}{`;
+  });
+}
+
+function replaceOutsideCssQuotedStrings(
+  value: string,
+  replace: (unquotedValue: string) => string
+): string {
+  return value
+    .split(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g)
+    .map((part, index) => index % 2 === 0 ? replace(part) : part)
+    .join('');
 }
 
 function normalizeContent(value: string | undefined): string {
@@ -659,6 +743,20 @@ function mergeDeclarations(
 
   return merged;
 }
+
+const betterTextStarterCustomStyles = `.bt-style--eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bt-style--display-title {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}`;
 
 const betterTextBaseCss = `:host {
   display: block;

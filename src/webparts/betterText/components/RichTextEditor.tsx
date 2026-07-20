@@ -16,13 +16,20 @@ import {
   Unlink01Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
-import { betterTextFontSizeRange, betterTextFontWeightOptions } from '../../../shared/text';
+import {
+  BetterTextCustomStyle,
+  betterTextFontSizeRange,
+  betterTextFontWeightOptions,
+  createBetterTextCustomStyleLabel,
+  normalizeBetterTextStyleClassName
+} from '../../../shared/text';
 
 export interface RichTextEditorProps {
   value: string;
   editable: boolean;
   ariaLabel?: string;
   className?: string;
+  customStyles?: readonly BetterTextCustomStyle[];
   onChange?: (html: string) => void;
 }
 
@@ -79,10 +86,10 @@ const alignCommands: ToolbarCommand[] = [
 ];
 
 const blockFormats = [
-  { label: 'Normal text', value: 'p' },
-  { label: 'Heading 2', value: 'h2' },
-  { label: 'Heading 3', value: 'h3' },
-  { label: 'Heading 4', value: 'h4' }
+  { label: 'Normal text', value: 'format:p' },
+  { label: 'Heading 2', value: 'format:h2' },
+  { label: 'Heading 3', value: 'format:h3' },
+  { label: 'Heading 4', value: 'format:h4' }
 ];
 
 export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (props) => {
@@ -93,7 +100,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
   const valueRef = React.useRef(props.value);
   valueRef.current = props.value;
   const [activeStates, setActiveStates] = React.useState<Record<string, boolean>>({});
-  const [blockFormat, setBlockFormat] = React.useState('p');
+  const [textStyle, setTextStyle] = React.useState('format:p');
   const [fontWeight, setFontWeight] = React.useState('400');
   const [fontSize, setFontSize] = React.useState('17');
   const [linkEditorOpen, setLinkEditorOpen] = React.useState(false);
@@ -208,7 +215,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
       }
     });
     setActiveStates(nextStates);
-    setBlockFormat(readSelectionBlockFormat(contentRef.current));
+    setTextStyle(readSelectionTextStyle(contentRef.current));
     setFontWeight(readSelectionFontWeight(contentRef.current));
     setFontSize(readSelectionFontSize(contentRef.current));
   }, []);
@@ -225,9 +232,38 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
     scheduleChange();
   };
 
-  const applyBlockFormat = (value: string): void => {
-    runCommand('formatBlock', `<${value}>`);
-    setBlockFormat(value);
+  const applyBlockStyle = (className: string): void => {
+    const element = contentRef.current;
+    const selection = restoreEditorSelection();
+    if (!element || !selection || selection.rangeCount === 0) {
+      refreshToolbarState();
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    if (!rangeBelongsToScope(range, element)) {
+      refreshToolbarState();
+      return;
+    }
+    if (applyBetterTextBlockStyleToRange(element, range, className)) {
+      selectionRangeRef.current = range.cloneRange();
+      setTextStyle(className ? `class:${className}` : readSelectionTextStyle(element));
+      scheduleChange();
+      return;
+    }
+    refreshToolbarState();
+  };
+
+  const applyTextStyle = (value: string): void => {
+    if (value.startsWith('format:')) {
+      const tag = value.slice('format:'.length);
+      runCommand('formatBlock', `<${tag}>`);
+      applyBlockStyle('');
+      setTextStyle(value);
+      return;
+    }
+    if (value.startsWith('class:')) {
+      applyBlockStyle(value.slice('class:'.length));
+    }
   };
 
   const applyInlineStyle = (property: 'fontSize' | 'fontWeight', value: string): void => {
@@ -317,6 +353,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
   const clearFormatting = (): void => {
     runCommand('removeFormat');
     runCommand('formatBlock', '<p>');
+    applyBlockStyle('');
   };
 
   const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>): void => {
@@ -348,15 +385,32 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
         <select
           aria-label="Text style"
           className="better-text-editor__select"
-          value={blockFormat}
+          value={textStyle}
           onMouseDown={() => rememberEditorSelection()}
-          onChange={(event) => applyBlockFormat(event.currentTarget.value)}
+          onChange={(event) => applyTextStyle(event.currentTarget.value)}
         >
-          {blockFormats.map((format) => (
-            <option key={format.value} value={format.value}>
-              {format.label}
-            </option>
-          ))}
+          <optgroup label="Standard">
+            {blockFormats.map((format) => (
+              <option key={format.value} value={format.value}>
+                {format.label}
+              </option>
+            ))}
+          </optgroup>
+          {(props.customStyles?.length || textStyle.startsWith('class:')) && (
+            <optgroup label="Custom styles">
+              {props.customStyles?.map((style) => (
+                <option key={style.className} value={`class:${style.className}`}>
+                  {style.label}
+                </option>
+              ))}
+              {textStyle.startsWith('class:')
+                && !props.customStyles?.some((style) => `class:${style.className}` === textStyle) && (
+                <option value={textStyle}>
+                  {createBetterTextCustomStyleLabel(textStyle.slice('class:'.length))} (unavailable)
+                </option>
+              )}
+            </optgroup>
+          )}
         </select>
         <select
           aria-label="Font weight"
@@ -597,27 +651,25 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function readSelectionBlockFormat(scope: HTMLElement | null): string {
+function readSelectionTextStyle(scope: HTMLElement | null): string {
   if (typeof window === 'undefined' || !scope) {
-    return 'p';
+    return 'format:p';
   }
   const selection = getSelectionForScope(scope);
-  let node = selection?.anchorNode || null;
-
-  while (node && node !== scope) {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const tag = (node as HTMLElement).tagName.toLowerCase();
-      if (tag === 'h2' || tag === 'h3' || tag === 'h4') {
-        return tag;
-      }
-      if (tag === 'p') {
-        return 'p';
-      }
-    }
-    node = node.parentNode;
+  const block = findClosestTextBlock(selection?.anchorNode || null, scope);
+  if (!block) {
+    return 'format:p';
   }
 
-  return 'p';
+  const customClassName = Array.from(block.classList).find((className) =>
+    Boolean(normalizeBetterTextStyleClassName(className))
+  );
+  if (customClassName) {
+    return `class:${customClassName}`;
+  }
+
+  const tag = block.tagName.toLowerCase();
+  return tag === 'h2' || tag === 'h3' || tag === 'h4' ? `format:${tag}` : 'format:p';
 }
 
 function readSelectionFontWeight(scope: HTMLElement | null): string {
@@ -679,6 +731,74 @@ function readComputedFontSize(element: HTMLElement): string {
 function rangeBelongsToScope(range: Range, scope: HTMLElement): boolean {
   const container = range.commonAncestorContainer;
   return container === scope || scope.contains(container);
+}
+
+export function applyBetterTextBlockStyleToRange(
+  scope: HTMLElement,
+  range: Range,
+  className: string
+): boolean {
+  const normalizedClassName = normalizeBetterTextStyleClassName(className);
+  if (className && !normalizedClassName) {
+    return false;
+  }
+
+  const blocks = getTextBlocksForRange(scope, range);
+  let changed = false;
+  blocks.forEach((block) => {
+    const previousClassName = block.getAttribute('class') || '';
+    Array.from(block.classList).forEach((token) => {
+      if (normalizeBetterTextStyleClassName(token)) {
+        block.classList.remove(token);
+      }
+    });
+    if (normalizedClassName) {
+      block.classList.add(normalizedClassName);
+    }
+    if (!block.classList.length) {
+      block.removeAttribute('class');
+    }
+    changed = changed || previousClassName !== (block.getAttribute('class') || '');
+  });
+  return changed;
+}
+
+function getTextBlocksForRange(scope: HTMLElement, range: Range): HTMLElement[] {
+  if (range.collapsed) {
+    const block = findClosestTextBlock(range.startContainer, scope);
+    return block ? [block] : [];
+  }
+
+  const intersectingBlocks = Array.from(
+    scope.querySelectorAll<HTMLElement>('p, h2, h3, h4, blockquote, li, pre')
+  ).filter((block) => {
+    try {
+      return range.intersectsNode(block);
+    } catch {
+      return false;
+    }
+  });
+
+  return intersectingBlocks.filter((block) =>
+    !intersectingBlocks.some((candidate) => candidate !== block && block.contains(candidate))
+  );
+}
+
+function findClosestTextBlock(node: Node | null, scope: HTMLElement): HTMLElement | null {
+  let element = node?.nodeType === 1
+    ? node as HTMLElement
+    : node?.parentElement || null;
+
+  while (element && element !== scope) {
+    const tag = element.tagName.toLowerCase();
+    if (tag === 'p' || tag === 'h2' || tag === 'h3' || tag === 'h4'
+      || tag === 'blockquote' || tag === 'li' || tag === 'pre') {
+      return element;
+    }
+    element = element.parentElement;
+  }
+
+  return null;
 }
 
 function applyInlineStyleToFragment(

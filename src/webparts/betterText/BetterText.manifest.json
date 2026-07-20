@@ -25,6 +25,7 @@
       "officeFabricIconFontName": "TextField",
       "properties": {
         "content": "<p>Start writing with Better Text. Use the toolbar to format, pick any Google font, and fine-tune leading and letter spacing.</p>",
+        "textStyleClassName": "",
         "fontFamily": "",
         "fontSize": 17,
         "fontSizeUnit": "px",
