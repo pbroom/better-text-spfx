@@ -16,6 +16,7 @@ import {
   Unlink01Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { betterTextFontWeightOptions } from '../../../shared/text';
 
 export interface RichTextEditorProps {
   value: string;
@@ -82,16 +83,6 @@ const blockFormats = [
   { label: 'Heading 2', value: 'h2' },
   { label: 'Heading 3', value: 'h3' },
   { label: 'Heading 4', value: 'h4' }
-];
-
-const fontWeights = [
-  { label: 'Light 300', value: '300' },
-  { label: 'Regular 400', value: '400' },
-  { label: 'Medium 500', value: '500' },
-  { label: 'Semibold 600', value: '600' },
-  { label: 'Bold 700', value: '700' },
-  { label: 'Extra bold 800', value: '800' },
-  { label: 'Black 900', value: '900' }
 ];
 
 export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (props) => {
@@ -354,7 +345,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
           onMouseDown={() => rememberEditorSelection()}
           onChange={(event) => applyFontWeight(event.currentTarget.value)}
         >
-          {fontWeights.map((weight) => (
+          {betterTextFontWeightOptions.map((weight) => (
             <option key={weight.value} value={weight.value}>
               {weight.label}
             </option>
@@ -611,7 +602,7 @@ function readSelectionFontWeight(scope: HTMLElement | null): string {
   if (!Number.isFinite(numeric)) {
     return '400';
   }
-  return fontWeights.reduce((closest, option) => (
+  return betterTextFontWeightOptions.reduce((closest, option) => (
     Math.abs(Number(option.value) - numeric) < Math.abs(Number(closest) - numeric)
       ? option.value
       : closest

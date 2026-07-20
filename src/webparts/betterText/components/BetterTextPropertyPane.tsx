@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { Combobox, FluentProvider, Option, webLightTheme } from '@fluentui/react-components';
+import { Combobox, Dropdown, FluentProvider, Option, webLightTheme } from '@fluentui/react-components';
 
 import {
   BetterTextProperties,
+  betterTextFontSizeRange,
+  betterTextFontWeightOptions,
   betterTextLetterSpacingRange,
   betterTextLineHeightRange,
   createBetterTextCssTargetComment,
@@ -85,6 +87,21 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
           />
           <div className="bt-property-pane__field-row">
             <NumberField
+              label="Font size"
+              max={betterTextFontSizeRange.max}
+              min={betterTextFontSizeRange.min}
+              step={betterTextFontSizeRange.step}
+              unit={values.fontSizeUnit}
+              value={values.fontSize}
+              onChange={(fontSize) => applyControlPatch({ fontSize })}
+            />
+            <FontWeightField
+              value={values.fontWeight}
+              onChange={(fontWeight) => applyControlPatch({ fontWeight })}
+            />
+          </div>
+          <div className="bt-property-pane__field-row">
+            <NumberField
               label="Line height"
               max={betterTextLineHeightRange.max}
               min={betterTextLineHeightRange.min}
@@ -98,7 +115,7 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
               max={betterTextLetterSpacingRange.max}
               min={betterTextLetterSpacingRange.min}
               step={betterTextLetterSpacingRange.step}
-              unit="px"
+              unit={values.letterSpacingUnit}
               value={values.letterSpacing}
               onChange={(letterSpacing) => applyControlPatch({ letterSpacing })}
             />
@@ -118,6 +135,40 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
         </section>
       </div>
     </FluentProvider>
+  );
+};
+
+interface FontWeightFieldProps {
+  value: number;
+  onChange: (value: number) => void;
+}
+
+const FontWeightField: React.FunctionComponent<FontWeightFieldProps> = (props) => {
+  const selectedValue = String(props.value);
+  const selectedOption = betterTextFontWeightOptions.find((option) => option.value === selectedValue);
+
+  return (
+    <label className="bt-property-pane__field">
+      <span className="bt-property-pane__label">Font weight</span>
+      <Dropdown
+        aria-label="Font weight"
+        className="bt-property-pane__dropdown"
+        selectedOptions={[selectedValue]}
+        value={selectedOption?.label || selectedValue}
+        onOptionSelect={(_event, data) => {
+          const value = Number(data.optionValue);
+          if (Number.isFinite(value)) {
+            props.onChange(value);
+          }
+        }}
+      >
+        {betterTextFontWeightOptions.map((option) => (
+          <Option key={option.value} value={option.value}>
+            {option.label}
+          </Option>
+        ))}
+      </Dropdown>
+    </label>
   );
 };
 
@@ -235,6 +286,11 @@ const propertyPaneCss = `.bt-property-pane__provider {
 }
 
 .bt-property-pane__font-combobox {
+  width: 100%;
+  min-width: 0;
+}
+
+.bt-property-pane__dropdown {
   width: 100%;
   min-width: 0;
 }
