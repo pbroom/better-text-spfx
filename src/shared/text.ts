@@ -12,12 +12,13 @@ export interface BetterTextProperties {
   fontWeight: number;
   lineHeight: number;
   letterSpacing: number;
-  letterSpacingUnit: BetterTextLengthUnit;
+  letterSpacingUnit: BetterTextLetterSpacingUnit;
   instanceClassName: string;
   customCss: string;
 }
 
 export type BetterTextLengthUnit = 'px' | '%' | 'em' | 'rem' | 'pt';
+export type BetterTextLetterSpacingUnit = Exclude<BetterTextLengthUnit, '%'>;
 
 export interface BetterTextCssTarget {
   label: string;
@@ -29,6 +30,8 @@ export interface BetterTextCssTarget {
 
 export const betterTextFontSizeRange = { min: 0.1, max: 512, step: 0.1 };
 export const betterTextFontWeightOptions = [
+  { label: 'Thin 100', value: '100' },
+  { label: 'Extra light 200', value: '200' },
   { label: 'Light 300', value: '300' },
   { label: 'Regular 400', value: '400' },
   { label: 'Medium 500', value: '500' },
@@ -81,7 +84,7 @@ export function normalizeBetterTextProperties(
       betterTextLetterSpacingRange.max,
       defaultBetterTextProperties.letterSpacing
     ),
-    letterSpacingUnit: normalizeLengthUnit(
+    letterSpacingUnit: normalizeLetterSpacingUnit(
       properties.letterSpacingUnit,
       defaultBetterTextProperties.letterSpacingUnit
     ),
@@ -123,7 +126,7 @@ export function parseBetterTextPropertiesFromCss(
   const parsedLineHeight = parseLineHeight(contentDeclarations['line-height']);
   const parsedLetterSpacing = parseLetterSpacing(
     contentDeclarations['letter-spacing'],
-    normalizeLengthUnit(fallbackProperties.letterSpacingUnit, defaultBetterTextProperties.letterSpacingUnit)
+    normalizeLetterSpacingUnit(fallbackProperties.letterSpacingUnit, defaultBetterTextProperties.letterSpacingUnit)
   );
 
   return normalizeBetterTextProperties({
@@ -144,7 +147,10 @@ export function parseBetterTextPropertiesFromCss(
       ? numberOrDefault(fallbackProperties.letterSpacing, defaultBetterTextProperties.letterSpacing)
       : parsedLetterSpacing.value,
     letterSpacingUnit: parsedLetterSpacing?.unit
-      ?? normalizeLengthUnit(fallbackProperties.letterSpacingUnit, defaultBetterTextProperties.letterSpacingUnit),
+      ?? normalizeLetterSpacingUnit(
+        fallbackProperties.letterSpacingUnit,
+        defaultBetterTextProperties.letterSpacingUnit
+      ),
     instanceClassName: fallbackProperties.instanceClassName || defaultBetterTextProperties.instanceClassName,
     customCss: source
   });
@@ -320,8 +326,8 @@ function parseLineHeight(value: string | undefined): number | undefined {
 
 function parseLetterSpacing(
   value: string | undefined,
-  fallbackUnit: BetterTextLengthUnit
-): { value: number; unit: BetterTextLengthUnit } | undefined {
+  fallbackUnit: BetterTextLetterSpacingUnit
+): { value: number; unit: BetterTextLetterSpacingUnit } | undefined {
   const next = (value || '').trim();
   if (!next) {
     return undefined;
@@ -329,7 +335,11 @@ function parseLetterSpacing(
   if (next === 'normal' || next === '0') {
     return { value: 0, unit: fallbackUnit };
   }
-  return parseLengthDeclaration(next, fallbackUnit);
+  const parsed = parseLengthDeclaration(next, fallbackUnit);
+  if (!parsed || parsed.unit === '%') {
+    return undefined;
+  }
+  return { value: parsed.value, unit: parsed.unit };
 }
 
 function parseLengthDeclaration(
@@ -414,6 +424,14 @@ function normalizeLengthUnit(
   return normalized === 'px' || normalized === '%' || normalized === 'em' || normalized === 'rem' || normalized === 'pt'
     ? normalized
     : fallback;
+}
+
+function normalizeLetterSpacingUnit(
+  value: BetterTextLengthUnit | string | undefined,
+  fallback: BetterTextLetterSpacingUnit
+): BetterTextLetterSpacingUnit {
+  const normalized = normalizeLengthUnit(value, fallback);
+  return normalized === '%' ? fallback : normalized;
 }
 
 function normalizeFontWeight(value: number | undefined): number {
