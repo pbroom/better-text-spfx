@@ -11,7 +11,8 @@
   "scripts": {
     "build": "gulp bundle",
     "clean": "gulp clean",
-    "test": "gulp test",
+    "test": "npm run test:source-editor-core && gulp test",
+    "test:source-editor-core": "node --no-warnings --experimental-strip-types --test scripts/source-editor-core.test.mjs",
     "serve": "gulp serve",
     "ship": "gulp clean && gulp bundle --ship && node scripts/copy-monaco-assets.mjs --app . && gulp package-solution --ship"
   },
