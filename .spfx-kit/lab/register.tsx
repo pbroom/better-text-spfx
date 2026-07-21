@@ -7,6 +7,8 @@ import type {
 } from '@spfx-kit/spfx-lab-runtime';
 import {
   BetterTextProperties,
+  betterTextFontSizeRange,
+  betterTextFontWeightOptions,
   betterTextLetterSpacingRange,
   betterTextLineHeightRange,
   betterTextRootClassName,
@@ -89,6 +91,28 @@ const webPart: LabWebPart<BetterTextLabProps> = {
     },
     {
       type: 'number',
+      name: 'fontSize',
+      label: 'Font size',
+      inlineGroup: 'text-font',
+      min: betterTextFontSizeRange.min,
+      max: betterTextFontSizeRange.max,
+      step: betterTextFontSizeRange.step,
+      getUnit: (values) => normalizeBetterTextProperties(values).fontSizeUnit,
+      getPatch: (value, values) => createControlPatch('fontSize', value, values)
+    },
+    {
+      type: 'select',
+      name: 'fontWeight',
+      label: 'Font weight',
+      inlineGroup: 'text-font',
+      options: betterTextFontWeightOptions.map((option) => ({
+        label: option.label,
+        value: option.value
+      })),
+      getPatch: (value, values) => createControlPatch('fontWeight', value, values)
+    },
+    {
+      type: 'number',
       name: 'lineHeight',
       label: 'Line height',
       inlineGroup: 'text-typography',
@@ -106,7 +130,7 @@ const webPart: LabWebPart<BetterTextLabProps> = {
       min: betterTextLetterSpacingRange.min,
       max: betterTextLetterSpacingRange.max,
       step: betterTextLetterSpacingRange.step,
-      unit: 'px',
+      getUnit: (values) => normalizeBetterTextProperties(values).letterSpacingUnit,
       getPatch: (value, values) => createControlPatch('letterSpacing', value, values)
     },
     {

@@ -16,6 +16,7 @@ import {
   Unlink01Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { betterTextFontSizeRange, betterTextFontWeightOptions } from '../../../shared/text';
 
 export interface RichTextEditorProps {
   value: string;
@@ -84,16 +85,6 @@ const blockFormats = [
   { label: 'Heading 4', value: 'h4' }
 ];
 
-const fontWeights = [
-  { label: 'Light 300', value: '300' },
-  { label: 'Regular 400', value: '400' },
-  { label: 'Medium 500', value: '500' },
-  { label: 'Semibold 600', value: '600' },
-  { label: 'Bold 700', value: '700' },
-  { label: 'Extra bold 800', value: '800' },
-  { label: 'Black 900', value: '900' }
-];
-
 export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (props) => {
   const contentRef = React.useRef<HTMLDivElement | null>(null);
   const changeTimerRef = React.useRef<number | undefined>(undefined);
@@ -104,6 +95,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
   const [activeStates, setActiveStates] = React.useState<Record<string, boolean>>({});
   const [blockFormat, setBlockFormat] = React.useState('p');
   const [fontWeight, setFontWeight] = React.useState('400');
+  const [fontSize, setFontSize] = React.useState('17');
   const [linkEditorOpen, setLinkEditorOpen] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState('https://');
   const [linkError, setLinkError] = React.useState('');
@@ -218,6 +210,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
     setActiveStates(nextStates);
     setBlockFormat(readSelectionBlockFormat(contentRef.current));
     setFontWeight(readSelectionFontWeight(contentRef.current));
+    setFontSize(readSelectionFontSize(contentRef.current));
   }, []);
 
   const runCommand = (command: string, value?: string): void => {
@@ -237,7 +230,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
     setBlockFormat(value);
   };
 
-  const applyFontWeight = (value: string): void => {
+  const applyInlineStyle = (property: 'fontSize' | 'fontWeight', value: string): void => {
     const element = contentRef.current;
     const selection = restoreEditorSelection();
     if (!element || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
@@ -251,7 +244,7 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
     }
 
     const fragment = range.extractContents();
-    applyFontWeightToFragment(fragment, value);
+    applyInlineStyleToFragment(fragment, property, value);
     const insertedNodes = Array.from(fragment.childNodes);
     range.insertNode(fragment);
     if (insertedNodes.length) {
@@ -261,8 +254,27 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
     selection.removeAllRanges();
     selection.addRange(range);
     selectionRangeRef.current = range.cloneRange();
-    setFontWeight(value);
     scheduleChange();
+  };
+
+  const applyFontWeight = (value: string): void => {
+    applyInlineStyle('fontWeight', value);
+    setFontWeight(value);
+  };
+
+  const commitFontSize = (): void => {
+    const numericValue = Number.parseFloat(fontSize);
+    if (
+      !Number.isFinite(numericValue)
+      || numericValue < betterTextFontSizeRange.min
+      || numericValue > betterTextFontSizeRange.max
+    ) {
+      refreshToolbarState();
+      return;
+    }
+    const normalizedValue = String(numericValue);
+    setFontSize(normalizedValue);
+    applyInlineStyle('fontSize', `${normalizedValue}px`);
   };
 
   const openLinkEditor = (): void => {
@@ -354,12 +366,35 @@ export const RichTextEditor: React.FunctionComponent<RichTextEditorProps> = (pro
           onMouseDown={() => rememberEditorSelection()}
           onChange={(event) => applyFontWeight(event.currentTarget.value)}
         >
-          {fontWeights.map((weight) => (
+          {betterTextFontWeightOptions.map((weight) => (
             <option key={weight.value} value={weight.value}>
               {weight.label}
             </option>
           ))}
         </select>
+        <label className="better-text-editor__font-size">
+          <input
+            aria-label="Font size (px)"
+            className="better-text-editor__font-size-input"
+            inputMode="decimal"
+            max={betterTextFontSizeRange.max}
+            min={betterTextFontSizeRange.min}
+            step={betterTextFontSizeRange.step}
+            title="Font size"
+            type="number"
+            value={fontSize}
+            onBlur={commitFontSize}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
+            }}
+            onMouseDown={() => rememberEditorSelection()}
+            onChange={(event) => setFontSize(event.currentTarget.value)}
+          />
+          <span aria-hidden="true">px</span>
+        </label>
         <span className="better-text-editor__divider" />
         {inlineCommands.map((item) => (
           <ToolbarButton key={item.id} item={item} active={Boolean(activeStates[item.id])} onRun={runCommand} />
@@ -611,11 +646,34 @@ function readSelectionFontWeight(scope: HTMLElement | null): string {
   if (!Number.isFinite(numeric)) {
     return '400';
   }
-  return fontWeights.reduce((closest, option) => (
+  return betterTextFontWeightOptions.reduce((closest, option) => (
     Math.abs(Number(option.value) - numeric) < Math.abs(Number(closest) - numeric)
       ? option.value
       : closest
   ), '400');
+}
+
+function readSelectionFontSize(scope: HTMLElement | null): string {
+  if (typeof window === 'undefined' || !scope) {
+    return '17';
+  }
+  const selection = getSelectionForScope(scope);
+  const anchorNode = selection?.anchorNode;
+  if (!anchorNode || !scope.contains(anchorNode)) {
+    return readComputedFontSize(scope);
+  }
+  const element = anchorNode.nodeType === Node.ELEMENT_NODE
+    ? anchorNode as HTMLElement
+    : anchorNode.parentElement;
+  if (!element) {
+    return readComputedFontSize(scope);
+  }
+  return readComputedFontSize(element);
+}
+
+function readComputedFontSize(element: HTMLElement): string {
+  const computed = Number.parseFloat(window.getComputedStyle(element).fontSize);
+  return Number.isFinite(computed) ? String(Number(computed.toFixed(2))) : '17';
 }
 
 function rangeBelongsToScope(range: Range, scope: HTMLElement): boolean {
@@ -623,7 +681,11 @@ function rangeBelongsToScope(range: Range, scope: HTMLElement): boolean {
   return container === scope || scope.contains(container);
 }
 
-function applyFontWeightToFragment(fragment: DocumentFragment, value: string): void {
+function applyInlineStyleToFragment(
+  fragment: DocumentFragment,
+  property: 'fontSize' | 'fontWeight',
+  value: string
+): void {
   const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
   const textNodes: Text[] = [];
   let current = walker.nextNode();
@@ -636,7 +698,7 @@ function applyFontWeightToFragment(fragment: DocumentFragment, value: string): v
 
   textNodes.forEach((textNode) => {
     const span = document.createElement('span');
-    span.style.fontWeight = value;
+    span.style[property] = value;
     textNode.parentNode?.insertBefore(span, textNode);
     span.appendChild(textNode);
   });
@@ -689,6 +751,37 @@ const richTextEditorCss = `.better-text-editor {
 
 .better-text-editor__select--weight {
   width: 112px;
+}
+
+.better-text-editor__font-size {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding-right: 5px;
+  color: #605e5c;
+  background: transparent;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 11px;
+}
+
+.better-text-editor__font-size:hover,
+.better-text-editor__font-size:focus-within {
+  border-color: #c7c7c7;
+  background: #f5f5f5;
+}
+
+.better-text-editor__font-size-input {
+  width: 43px;
+  height: 24px;
+  border: 0;
+  padding: 0 2px 0 5px;
+  color: #323130;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
 }
 
 .better-text-editor__divider {

@@ -94,12 +94,18 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
     const properties = normalizeBetterTextProperties({
       content: this.properties.content === undefined ? defaultBetterTextProperties.content : this.properties.content,
       fontFamily: this.properties.fontFamily || defaultBetterTextProperties.fontFamily,
+      fontSize:
+        this.properties.fontSize === undefined ? defaultBetterTextProperties.fontSize : this.properties.fontSize,
+      fontSizeUnit: this.properties.fontSizeUnit || defaultBetterTextProperties.fontSizeUnit,
+      fontWeight:
+        this.properties.fontWeight === undefined ? defaultBetterTextProperties.fontWeight : this.properties.fontWeight,
       lineHeight:
         this.properties.lineHeight === undefined ? defaultBetterTextProperties.lineHeight : this.properties.lineHeight,
       letterSpacing:
         this.properties.letterSpacing === undefined
           ? defaultBetterTextProperties.letterSpacing
           : this.properties.letterSpacing,
+      letterSpacingUnit: this.properties.letterSpacingUnit || defaultBetterTextProperties.letterSpacingUnit,
       instanceClassName: this.properties.instanceClassName || createBetterTextInstanceClass(this._getInstanceClassSeed()),
       customCss: this.properties.customCss
     });
@@ -179,8 +185,12 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
     ([
       'content',
       'fontFamily',
+      'fontSize',
+      'fontSizeUnit',
+      'fontWeight',
       'lineHeight',
       'letterSpacing',
+      'letterSpacingUnit',
       'instanceClassName',
       'customCss'
     ] as Array<keyof BetterTextProperties>).forEach((propertyPath) => {
@@ -203,8 +213,12 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
   private _assignProperties(properties: BetterTextProperties): void {
     this.properties.content = properties.content;
     this.properties.fontFamily = properties.fontFamily;
+    this.properties.fontSize = properties.fontSize;
+    this.properties.fontSizeUnit = properties.fontSizeUnit;
+    this.properties.fontWeight = properties.fontWeight;
     this.properties.lineHeight = properties.lineHeight;
     this.properties.letterSpacing = properties.letterSpacing;
+    this.properties.letterSpacingUnit = properties.letterSpacingUnit;
     this.properties.instanceClassName = properties.instanceClassName;
   }
 
@@ -220,8 +234,12 @@ function isBetterTextProperty(propertyPath: string): boolean {
   return (
     propertyPath === 'content' ||
     propertyPath === 'fontFamily' ||
+    propertyPath === 'fontSize' ||
+    propertyPath === 'fontSizeUnit' ||
+    propertyPath === 'fontWeight' ||
     propertyPath === 'lineHeight' ||
     propertyPath === 'letterSpacing' ||
+    propertyPath === 'letterSpacingUnit' ||
     propertyPath === 'instanceClassName' ||
     propertyPath === 'customCss'
   );

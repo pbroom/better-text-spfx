@@ -7,11 +7,18 @@ import {
 export interface BetterTextProperties {
   content: string;
   fontFamily: string;
+  fontSize: number;
+  fontSizeUnit: BetterTextLengthUnit;
+  fontWeight: number;
   lineHeight: number;
   letterSpacing: number;
+  letterSpacingUnit: BetterTextLetterSpacingUnit;
   instanceClassName: string;
   customCss: string;
 }
+
+export type BetterTextLengthUnit = 'px' | '%' | 'em' | 'rem' | 'pt';
+export type BetterTextLetterSpacingUnit = Exclude<BetterTextLengthUnit, '%'>;
 
 export interface BetterTextCssTarget {
   label: string;
@@ -21,14 +28,30 @@ export interface BetterTextCssTarget {
   renameLabel?: string;
 }
 
+export const betterTextFontSizeRange = { min: 0.1, max: 512, step: 0.1 };
+export const betterTextFontWeightOptions = [
+  { label: 'Thin 100', value: '100' },
+  { label: 'Extra light 200', value: '200' },
+  { label: 'Light 300', value: '300' },
+  { label: 'Regular 400', value: '400' },
+  { label: 'Medium 500', value: '500' },
+  { label: 'Semibold 600', value: '600' },
+  { label: 'Bold 700', value: '700' },
+  { label: 'Extra bold 800', value: '800' },
+  { label: 'Black 900', value: '900' }
+] as const;
 export const betterTextLineHeightRange = { min: 0.8, max: 3, step: 0.05 };
-export const betterTextLetterSpacingRange = { min: -2, max: 20, step: 0.1 };
+export const betterTextLetterSpacingRange = { min: -100, max: 100, step: 0.1 };
 
 export const defaultBetterTextProperties: BetterTextProperties = {
   content: '<p>Start writing with Better Text.</p>',
   fontFamily: '',
+  fontSize: 17,
+  fontSizeUnit: 'px',
+  fontWeight: 400,
   lineHeight: 1.4,
   letterSpacing: 0,
+  letterSpacingUnit: 'px',
   instanceClassName: createBetterTextInstanceClass('better-text-default'),
   customCss: ''
 };
@@ -41,6 +64,14 @@ export function normalizeBetterTextProperties(
   return {
     content: normalizeContent(properties.content),
     fontFamily: normalizeFontFamily(properties.fontFamily),
+    fontSize: clampRangeNumber(
+      properties.fontSize,
+      betterTextFontSizeRange.min,
+      betterTextFontSizeRange.max,
+      defaultBetterTextProperties.fontSize
+    ),
+    fontSizeUnit: normalizeLengthUnit(properties.fontSizeUnit, defaultBetterTextProperties.fontSizeUnit),
+    fontWeight: normalizeFontWeight(properties.fontWeight),
     lineHeight: clampRangeNumber(
       properties.lineHeight,
       betterTextLineHeightRange.min,
@@ -52,6 +83,10 @@ export function normalizeBetterTextProperties(
       betterTextLetterSpacingRange.min,
       betterTextLetterSpacingRange.max,
       defaultBetterTextProperties.letterSpacing
+    ),
+    letterSpacingUnit: normalizeLetterSpacingUnit(
+      properties.letterSpacingUnit,
+      defaultBetterTextProperties.letterSpacingUnit
     ),
     instanceClassName: normalizeCssClassName(
       properties.instanceClassName,
@@ -83,20 +118,39 @@ export function parseBetterTextPropertiesFromCss(
   const compiledCss = compileBetterTextScss(source);
   const contentDeclarations = parseDeclarationMap(readCssRuleBody(compiledCss, '.better-text__content'));
   const parsedFontFamily = parseFontFamilyDeclaration(contentDeclarations['font-family']);
+  const parsedFontSize = parseLengthDeclaration(
+    contentDeclarations['font-size'],
+    normalizeLengthUnit(fallbackProperties.fontSizeUnit, defaultBetterTextProperties.fontSizeUnit)
+  );
+  const parsedFontWeight = parseFontWeightDeclaration(contentDeclarations['font-weight']);
   const parsedLineHeight = parseLineHeight(contentDeclarations['line-height']);
-  const parsedLetterSpacing = parseLetterSpacing(contentDeclarations['letter-spacing']);
+  const parsedLetterSpacing = parseLetterSpacing(
+    contentDeclarations['letter-spacing'],
+    normalizeLetterSpacingUnit(fallbackProperties.letterSpacingUnit, defaultBetterTextProperties.letterSpacingUnit)
+  );
 
   return normalizeBetterTextProperties({
     content: fallbackProperties.content,
     fontFamily: parsedFontFamily === undefined
       ? fallbackProperties.fontFamily || defaultBetterTextProperties.fontFamily
       : parsedFontFamily,
+    fontSize: parsedFontSize?.value
+      ?? numberOrDefault(fallbackProperties.fontSize, defaultBetterTextProperties.fontSize),
+    fontSizeUnit: parsedFontSize?.unit
+      ?? normalizeLengthUnit(fallbackProperties.fontSizeUnit, defaultBetterTextProperties.fontSizeUnit),
+    fontWeight: parsedFontWeight
+      ?? numberOrDefault(fallbackProperties.fontWeight, defaultBetterTextProperties.fontWeight),
     lineHeight: parsedLineHeight === undefined
       ? numberOrDefault(fallbackProperties.lineHeight, defaultBetterTextProperties.lineHeight)
       : parsedLineHeight,
     letterSpacing: parsedLetterSpacing === undefined
       ? numberOrDefault(fallbackProperties.letterSpacing, defaultBetterTextProperties.letterSpacing)
-      : parsedLetterSpacing,
+      : parsedLetterSpacing.value,
+    letterSpacingUnit: parsedLetterSpacing?.unit
+      ?? normalizeLetterSpacingUnit(
+        fallbackProperties.letterSpacingUnit,
+        defaultBetterTextProperties.letterSpacingUnit
+      ),
     instanceClassName: fallbackProperties.instanceClassName || defaultBetterTextProperties.instanceClassName,
     customCss: source
   });
@@ -172,8 +226,10 @@ export function betterTextRootClassName(properties: Partial<BetterTextProperties
 export function createBetterTextStyleVariables(properties: BetterTextProperties): Record<string, string> {
   return {
     '--better-text-font-family': createFontFamilyValue(properties.fontFamily),
+    '--better-text-font-size': formatLength(properties.fontSize, properties.fontSizeUnit),
+    '--better-text-font-weight': `${properties.fontWeight}`,
     '--better-text-line-height': `${properties.lineHeight}`,
-    '--better-text-letter-spacing': `${properties.letterSpacing}px`
+    '--better-text-letter-spacing': formatLength(properties.letterSpacing, properties.letterSpacingUnit)
   };
 }
 
@@ -186,7 +242,7 @@ export function createBetterTextCssTargetComment(instanceClassName?: string): st
 Better Text SCSS targets:
 :host - web part host element.
 .better-text - wrapper around the rich text content.
-.better-text__content - rich text body, font family, leading, and letter spacing.
+.better-text__content - rich text body, font family, size, weight, leading, and letter spacing.
 .${normalizedInstanceClassName} - generated instance class on this text web part only.
 */`;
 }
@@ -238,8 +294,10 @@ export function createBetterTextInstanceClass(seed = ''): string {
 function createContentDeclarations(properties: BetterTextProperties): Record<string, string> {
   return {
     'font-family': createFontFamilyValue(properties.fontFamily),
+    'font-size': formatLength(properties.fontSize, properties.fontSizeUnit),
+    'font-weight': `${properties.fontWeight}`,
     'line-height': `${properties.lineHeight}`,
-    'letter-spacing': `${properties.letterSpacing}px`
+    'letter-spacing': formatLength(properties.letterSpacing, properties.letterSpacingUnit)
   };
 }
 
@@ -266,15 +324,57 @@ function parseLineHeight(value: string | undefined): number | undefined {
   return undefined;
 }
 
-function parseLetterSpacing(value: string | undefined): number | undefined {
+function parseLetterSpacing(
+  value: string | undefined,
+  fallbackUnit: BetterTextLetterSpacingUnit
+): { value: number; unit: BetterTextLetterSpacingUnit } | undefined {
   const next = (value || '').trim();
   if (!next) {
     return undefined;
   }
   if (next === 'normal' || next === '0') {
-    return 0;
+    return { value: 0, unit: fallbackUnit };
   }
-  return parsePixelNumber(next);
+  const parsed = parseLengthDeclaration(next, fallbackUnit);
+  if (!parsed || parsed.unit === '%') {
+    return undefined;
+  }
+  return { value: parsed.value, unit: parsed.unit };
+}
+
+function parseLengthDeclaration(
+  value: string | undefined,
+  fallbackUnit: BetterTextLengthUnit
+): { value: number; unit: BetterTextLengthUnit } | undefined {
+  const match = (value || '').trim().match(/^(-?\d+(?:\.\d+)?)(px|%|em|rem|pt)?$/i);
+  if (!match) {
+    return undefined;
+  }
+  const parsed = Number(match[1]);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+  const unit = match[2]
+    ? normalizeLengthUnit(match[2].toLowerCase(), fallbackUnit)
+    : fallbackUnit;
+  return { value: parsed, unit };
+}
+
+function parseFontWeightDeclaration(value: string | undefined): number | undefined {
+  const next = (value || '').trim().toLowerCase();
+  if (!next) {
+    return undefined;
+  }
+  if (next === 'normal') {
+    return 400;
+  }
+  if (next === 'bold') {
+    return 700;
+  }
+  if (!/^\d+$/.test(next)) {
+    return undefined;
+  }
+  return normalizeFontWeight(Number(next));
 }
 
 function createRule(selector: string, declarations: Record<string, string>): string {
@@ -316,6 +416,36 @@ function normalizeFontFamily(value: string | undefined): string {
   return next;
 }
 
+function normalizeLengthUnit(
+  value: BetterTextLengthUnit | string | undefined,
+  fallback: BetterTextLengthUnit
+): BetterTextLengthUnit {
+  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return normalized === 'px' || normalized === '%' || normalized === 'em' || normalized === 'rem' || normalized === 'pt'
+    ? normalized
+    : fallback;
+}
+
+function normalizeLetterSpacingUnit(
+  value: BetterTextLengthUnit | string | undefined,
+  fallback: BetterTextLetterSpacingUnit
+): BetterTextLetterSpacingUnit {
+  const normalized = normalizeLengthUnit(value, fallback);
+  return normalized === '%' ? fallback : normalized;
+}
+
+function normalizeFontWeight(value: number | undefined): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return defaultBetterTextProperties.fontWeight;
+  }
+  return Math.min(900, Math.max(100, Math.round(parsed / 100) * 100));
+}
+
+function formatLength(value: number, unit: BetterTextLengthUnit): string {
+  return `${value}${unit}`;
+}
+
 function normalizeCustomCss(value: string | undefined): string {
   if (typeof value !== 'string') {
     return defaultBetterTextProperties.customCss;
@@ -351,15 +481,6 @@ function clampRangeNumber(value: number | undefined, min: number, max: number, f
 function numberOrDefault(value: number | undefined, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function parsePixelNumber(value: string | undefined): number | undefined {
-  const match = (value || '').trim().match(/^(-?\d+(?:\.\d+)?)px$/i);
-  if (!match) {
-    return undefined;
-  }
-  const parsed = Number(match[1]);
-  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function readCssRuleBody(css: string, selector: string): string | undefined {
@@ -552,7 +673,8 @@ const betterTextBaseCss = `:host {
   box-sizing: border-box;
   color: inherit;
   font-family: var(--better-text-font-family, ${themeDefaultFontStack});
-  font-size: 17px;
+  font-size: var(--better-text-font-size, 17px);
+  font-weight: var(--better-text-font-weight, 400);
   line-height: var(--better-text-line-height, 1.4);
   letter-spacing: var(--better-text-letter-spacing, 0px);
   overflow-wrap: break-word;
