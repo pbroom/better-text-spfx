@@ -2,13 +2,16 @@ import * as React from 'react';
 import { Combobox, Dropdown, FluentProvider, Option, webLightTheme } from '@fluentui/react-components';
 
 import {
+  BetterTextCustomStyle,
   BetterTextProperties,
   betterTextFontSizeRange,
   betterTextFontWeightOptions,
   betterTextLetterSpacingRange,
   betterTextLineHeightRange,
+  createBetterTextCustomStyleLabel,
   createBetterTextCssTargetComment,
   createBetterTextCssTargets,
+  discoverBetterTextCustomStyles,
   normalizeBetterTextInstanceClassName,
   normalizeBetterTextProperties,
   parseBetterTextPropertiesFromCss,
@@ -41,6 +44,11 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
   React.useEffect(() => {
     setValues(normalizeBetterTextProperties(props.properties));
   }, [props.properties]);
+
+  const customStyles = React.useMemo(
+    () => discoverBetterTextCustomStyles(values.customCss),
+    [values.customCss]
+  );
 
   const applyValues = (nextValues: BetterTextProperties): void => {
     setValues(nextValues);
@@ -78,6 +86,11 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
       <div className="bt-property-pane">
         <style>{propertyPaneCss}</style>
         <section className="bt-property-pane__section">
+          <TextStyleField
+            customStyles={customStyles}
+            value={values.textStyleClassName}
+            onChange={(textStyleClassName) => applyControlPatch({ textStyleClassName })}
+          />
           <FontFamilyField
             value={values.fontFamily}
             onChange={(fontFamily) => {
@@ -135,6 +148,44 @@ export const BetterTextPropertyPane: React.FunctionComponent<BetterTextPropertyP
         </section>
       </div>
     </FluentProvider>
+  );
+};
+
+interface TextStyleFieldProps {
+  customStyles: readonly BetterTextCustomStyle[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const TextStyleField: React.FunctionComponent<TextStyleFieldProps> = (props) => {
+  const selectedStyle = props.customStyles.find((style) => style.className === props.value);
+  const selectedLabel = selectedStyle?.label
+    || (props.value ? `${createBetterTextCustomStyleLabel(props.value)} (unavailable)` : 'Default');
+
+  return (
+    <label className="bt-property-pane__field">
+      <span className="bt-property-pane__label">Text style</span>
+      <Dropdown
+        aria-label="Text style"
+        className="bt-property-pane__dropdown"
+        selectedOptions={[props.value]}
+        value={selectedLabel}
+        onOptionSelect={(_event, data) => props.onChange(data.optionValue ?? '')}
+      >
+        <Option value="">Default</Option>
+        {props.customStyles.map((style) => (
+          <Option key={style.className} value={style.className}>
+            {style.label}
+          </Option>
+        ))}
+        {props.value && !selectedStyle && (
+          <Option value={props.value}>{selectedLabel}</Option>
+        )}
+      </Dropdown>
+      <span className="bt-property-pane__hint">
+        Define <code>.bt-style--name</code> in Custom CSS/SCSS to add presets.
+      </span>
+    </label>
   );
 };
 
@@ -283,6 +334,16 @@ const propertyPaneCss = `.bt-property-pane__provider {
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
+}
+
+.bt-property-pane__hint {
+  color: #616161;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.bt-property-pane__hint code {
+  font-family: Consolas, "Courier New", monospace;
 }
 
 .bt-property-pane__font-combobox {

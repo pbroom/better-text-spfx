@@ -16,6 +16,7 @@ import {
   createBetterTextInstanceClass,
   createBetterTextStyleVariables,
   defaultBetterTextProperties,
+  discoverBetterTextCustomStyles,
   normalizeBetterTextProperties,
   parseBetterTextPropertiesFromCss,
   syncBetterTextCssFromProperties
@@ -45,6 +46,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
       this.properties.customCss || createBetterTextControlCss(this.properties),
       this.properties
     );
+    const customStyles = discoverBetterTextCustomStyles(properties.customCss);
 
     ensureGoogleFontLoaded(properties.fontFamily);
 
@@ -71,6 +73,8 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
         },
         React.createElement(RichTextEditor, {
           ariaLabel: 'Better Text content',
+          className: properties.textStyleClassName,
+          customStyles,
           editable: this.displayMode === DisplayMode.Edit,
           value: properties.content,
           onChange: (content: string): void => {
@@ -93,6 +97,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
   protected onInit(): Promise<void> {
     const properties = normalizeBetterTextProperties({
       content: this.properties.content === undefined ? defaultBetterTextProperties.content : this.properties.content,
+      textStyleClassName: this.properties.textStyleClassName || defaultBetterTextProperties.textStyleClassName,
       fontFamily: this.properties.fontFamily || defaultBetterTextProperties.fontFamily,
       fontSize:
         this.properties.fontSize === undefined ? defaultBetterTextProperties.fontSize : this.properties.fontSize,
@@ -184,6 +189,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
 
     ([
       'content',
+      'textStyleClassName',
       'fontFamily',
       'fontSize',
       'fontSizeUnit',
@@ -212,6 +218,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
 
   private _assignProperties(properties: BetterTextProperties): void {
     this.properties.content = properties.content;
+    this.properties.textStyleClassName = properties.textStyleClassName;
     this.properties.fontFamily = properties.fontFamily;
     this.properties.fontSize = properties.fontSize;
     this.properties.fontSizeUnit = properties.fontSizeUnit;
@@ -233,6 +240,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
 function isBetterTextProperty(propertyPath: string): boolean {
   return (
     propertyPath === 'content' ||
+    propertyPath === 'textStyleClassName' ||
     propertyPath === 'fontFamily' ||
     propertyPath === 'fontSize' ||
     propertyPath === 'fontSizeUnit' ||

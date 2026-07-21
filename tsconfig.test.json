@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "module": "commonjs",
+    "outDir": "temp/jest",
+    "sourceMap": false,
+    "target": "es2019",
+    "types": [
+      "jest",
+      "webpack-env"
+    ]
+  },
+  "include": [
+    "src/types/hugeicons-core-free-icons.d.ts",
+    "src/shared/text.test.ts",
+    "src/webparts/betterText/components/RichTextEditor.test.tsx"
+  ]
+}

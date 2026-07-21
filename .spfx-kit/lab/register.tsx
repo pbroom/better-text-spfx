@@ -14,11 +14,13 @@ import {
   betterTextRootClassName,
   createBetterTextControlCss,
   createBetterTextCss,
+  createBetterTextCustomStyleLabel,
   createBetterTextCssTargetComment,
   createBetterTextCssTargets,
   createBetterTextInstanceClass,
   createBetterTextStyleVariables,
   defaultBetterTextProperties,
+  discoverBetterTextCustomStyles,
   normalizeBetterTextInstanceClassName,
   normalizeBetterTextProperties,
   parseBetterTextPropertiesFromCss,
@@ -57,6 +59,10 @@ const BetterTextLabPreview: React.FunctionComponent<LabRenderProps<BetterTextLab
   const rootStyle: React.CSSProperties = {
     ...createBetterTextStyleVariables(text)
   };
+  const customStyles = React.useMemo(
+    () => discoverBetterTextCustomStyles(text.customCss),
+    [text.customCss]
+  );
 
   return (
     <section className="better-text-lab-preview">
@@ -64,6 +70,8 @@ const BetterTextLabPreview: React.FunctionComponent<LabRenderProps<BetterTextLab
       <div className={`${betterTextRootClassName(text)} better-text-lab-web-part`} style={rootStyle}>
         <RichTextEditor
           ariaLabel="Better Text content"
+          className={text.textStyleClassName}
+          customStyles={customStyles}
           editable
           value={text.content}
           onChange={(content) => updateProps({ content })}
@@ -81,6 +89,15 @@ const webPart: LabWebPart<BetterTextLabProps> = {
     'A rich text web part with Google Fonts, leading and letter spacing controls, and synced custom CSS.',
   defaultProps,
   controls: [
+    {
+      type: 'select',
+      name: 'textStyleClassName',
+      label: 'Text style',
+      description: 'Define .bt-style--name in Custom CSS/SCSS to add presets.',
+      options: [{ label: 'Default', value: '' }],
+      getOptions: createTextStyleOptions,
+      getPatch: (value, values) => createControlPatch('textStyleClassName', value, values)
+    },
     {
       type: 'combobox',
       name: 'fontFamily',
@@ -156,6 +173,24 @@ const webPart: LabWebPart<BetterTextLabProps> = {
 
 export function register(registry: LabWebPartRegistry): void {
   registry.register(webPart);
+}
+
+function createTextStyleOptions(values: LabPropertyBag): Array<{ label: string; value: string }> {
+  const properties = normalizeBetterTextProperties(values);
+  const options = discoverBetterTextCustomStyles(properties.customCss).map((style) => ({
+    label: style.label,
+    value: style.className
+  }));
+  if (
+    properties.textStyleClassName
+    && !options.some((option) => option.value === properties.textStyleClassName)
+  ) {
+    options.push({
+      label: `${createBetterTextCustomStyleLabel(properties.textStyleClassName)} (unavailable)`,
+      value: properties.textStyleClassName
+    });
+  }
+  return [{ label: 'Default', value: '' }, ...options];
 }
 
 function createControlPatch(
