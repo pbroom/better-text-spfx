@@ -5,6 +5,11 @@
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@base-ui/react": ["temp/spfx-ui-profile/base-ui/index.d.ts"],
+      "@base-ui/react/*": ["temp/spfx-ui-profile/base-ui/*"]
+    },
     "jsx": "react",
     "declaration": true,
     "sourceMap": true,
@@ -31,5 +36,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx"
+  ],
+  "exclude": [
+    "src/vendor/source-editor/ui-profile/compat"
   ]
 }
