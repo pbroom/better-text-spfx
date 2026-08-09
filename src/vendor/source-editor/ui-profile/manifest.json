@@ -2,9 +2,9 @@
   "css": {
     "mode": "canonical-safe-superset",
     "note": "The exact manifest-verified scoped CSS is shared; JavaScript and Monaco graphs remain profile-specific.",
-    "scopeSelector": "[data-spfx-ui-scope=\"skui-9eea46b8e51bf75d\"]",
-    "scopeValue": "skui-9eea46b8e51bf75d",
-    "sha256": "e3fadb073a4feb7ff6c72a140baa2832d5a977875f284979cb0e9769670021be",
+    "scopeSelector": "[data-spfx-ui-scope=\"skui-7dbbe5a120453773\"]",
+    "scopeValue": "skui-7dbbe5a120453773",
+    "sha256": "7695f776e34dd59e51673d7235ce6ffaa9de4e99eb802c1b8bf1bd0029dcb2be",
     "sourcePath": "packages/ui-profile/generated/tailwind-profile.css",
     "vendorPath": "src/vendor/source-editor/ui-profile/tailwind-profile.css"
   },
@@ -40,7 +40,7 @@
       "vendorPath": "src/vendor/source-editor/ui-profile/lib/utils.ts"
     },
     {
-      "sha256": "e3fadb073a4feb7ff6c72a140baa2832d5a977875f284979cb0e9769670021be",
+      "sha256": "7695f776e34dd59e51673d7235ce6ffaa9de4e99eb802c1b8bf1bd0029dcb2be",
       "sourcePath": "packages/ui-profile/generated/tailwind-profile.css",
       "vendorPath": "src/vendor/source-editor/ui-profile/tailwind-profile.css"
     },
@@ -179,7 +179,7 @@
   "profileId": "source-editor-scss-react17-base-nova-v1",
   "profileKind": "scss-only",
   "runtimeContract": {
-    "sha256": "bb3edaff6b767100f39cbcca69e6015ac9a65944cab686e291766e24261d8ce5",
+    "sha256": "d0ac6b6667ea2a416b92c885f7a3c92de6460f73e041533e32b152395d1d0601",
     "vendorPath": "src/vendor/source-editor/ui-profile/profile-contract.ts"
   },
   "schemaVersion": 1,
@@ -217,7 +217,7 @@
   ],
   "sourceProfile": {
     "path": "packages/source-editor-react/ui-profile.json",
-    "sha256": "b2f5e20fd42549224e9331def7174c70d5bd01bccc3fbf33a0e69c41ec61e206"
+    "sha256": "78565742386460fb726c9259669c70590ac28c155d171bce368053a620ab0842"
   },
   "surfaces": [
     {
@@ -241,7 +241,7 @@
   "upstream": {
     "profileId": "spfx-react17-base-nova-v1",
     "profilePath": "packages/ui-profile/profile.json",
-    "profileSha256": "658eeaf9c1c25fe9026f0294c666d5022b27395a92aabfb0851c5574db713da5",
+    "profileSha256": "f451076dc28d609b892c5039d7abd5851aa67cc87368a1119730d373f1fc6464",
     "provenancePath": "packages/ui-profile/provenance.json",
     "provenanceSha256": "15ee3700f630c4620b4a84b9a67287280c90070bade7881f415cba062d733643"
   }
