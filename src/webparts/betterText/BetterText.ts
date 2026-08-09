@@ -328,6 +328,7 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
       scopeValue: SPFX_UI_SCOPE_VALUE,
       theme: this._uiTheme,
     });
+    raisePortalHostAbovePropertyPane(host.portalHost, mountPoint);
     this._propertyPaneHost = host;
     this._propertyPaneMount = mountPoint;
     return host;
@@ -341,6 +342,29 @@ export default class BetterTextWebPart extends BaseClientSideWebPart<IBetterText
       this._propertyPaneMount = undefined;
     }
   }
+}
+
+function raisePortalHostAbovePropertyPane(
+  portalHost: HTMLElement,
+  mountPoint: HTMLElement,
+): void {
+  const targetWindow = mountPoint.ownerDocument.defaultView;
+  let highestAncestorZIndex = 0;
+  let ancestor: HTMLElement | null = mountPoint;
+  while (ancestor) {
+    const zIndex = Number(targetWindow?.getComputedStyle(ancestor).zIndex);
+    if (Number.isFinite(zIndex)) {
+      highestAncestorZIndex = Math.max(highestAncestorZIndex, zIndex);
+    }
+    ancestor = ancestor.parentElement;
+  }
+
+  portalHost.style.position = "fixed";
+  portalHost.style.top = "0";
+  portalHost.style.left = "0";
+  portalHost.style.width = "0";
+  portalHost.style.height = "0";
+  portalHost.style.zIndex = String(Math.max(1000, highestAncestorZIndex + 1));
 }
 
 const defaultUiTheme: SpfxUiThemeTokens = {

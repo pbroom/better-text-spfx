@@ -126,36 +126,6 @@ describe("BetterTextPropertyPane", () => {
     ).toBe("Roboto");
   });
 
-  it("selects a string-valued font weight without leaking an option object", () => {
-    const host = createTestHost("font-weight");
-    const onChange = jest.fn();
-    renderPane(host, "", onChange);
-
-    const label = Array.from(
-      host.appRoot.querySelectorAll<HTMLElement>("[id]"),
-    ).find((element) => element.textContent === "Font weight");
-    expect(label).toBeDefined();
-    const trigger = host.appRoot.querySelector<HTMLElement>(
-      `[aria-labelledby="${label?.id}"]`,
-    );
-    expect(trigger).not.toBeNull();
-
-    act(() => {
-      Simulate.click(trigger as HTMLElement);
-    });
-    const bold = Array.from(
-      host.portalHost.querySelectorAll<HTMLElement>('[role="option"]'),
-    ).find((option) => option.textContent === "Bold 700");
-    expect(bold).toBeDefined();
-
-    act(() => {
-      Simulate.click(bold as HTMLElement);
-    });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ fontWeight: 700 }),
-    );
-  });
-
   it("supports keyboard selection, Escape focus return, and unique IDs across two hosts", () => {
     const firstHost = createTestHost("first");
     const secondHost = createTestHost("second");

@@ -224,14 +224,6 @@ const TextStyleField: React.FunctionComponent<TextStyleFieldProps> = (
     }
     return available;
   }, [props.customStyles, props.value, selectedLabel, selectedStyle]);
-  const itemsByValue = React.useMemo(
-    () =>
-      Object.fromEntries(
-        options.map((option) => [option.value, option.label]),
-      ),
-    [options],
-  );
-
   return (
     <div className="bt-property-pane__field">
       <span className="bt-property-pane__label" id={labelId}>
@@ -239,7 +231,6 @@ const TextStyleField: React.FunctionComponent<TextStyleFieldProps> = (
       </span>
       <Select
         id={controlId}
-        items={itemsByValue}
         value={props.value || null}
         onValueChange={(value) =>
           props.onChange(value === null ? "" : String(value))
@@ -286,16 +277,6 @@ const FontWeightField: React.FunctionComponent<FontWeightFieldProps> = (
   const controlId = useSpfxUiId("font-weight");
   const contentId = useSpfxUiDerivedId(controlId, "popup");
   const labelId = useSpfxUiDerivedId(controlId, "label");
-  const itemsByValue = React.useMemo(
-    () =>
-      Object.fromEntries(
-        betterTextFontWeightOptions.map((option) => [
-          option.value,
-          option.label,
-        ]),
-      ),
-    [],
-  );
 
   return (
     <div className="bt-property-pane__field">
@@ -304,7 +285,6 @@ const FontWeightField: React.FunctionComponent<FontWeightFieldProps> = (
       </span>
       <Select
         id={controlId}
-        items={itemsByValue}
         value={selectedValue}
         onValueChange={(nextValue) => {
           const value = Number(nextValue);
