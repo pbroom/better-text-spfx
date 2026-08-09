@@ -1,0 +1,248 @@
+{
+  "css": {
+    "mode": "canonical-safe-superset",
+    "note": "The exact manifest-verified scoped CSS is shared; JavaScript and Monaco graphs remain profile-specific.",
+    "scopeSelector": "[data-spfx-ui-scope=\"skui-7dbbe5a120453773\"]",
+    "scopeValue": "skui-7dbbe5a120453773",
+    "sha256": "7695f776e34dd59e51673d7235ce6ffaa9de4e99eb802c1b8bf1bd0029dcb2be",
+    "sourcePath": "packages/ui-profile/generated/tailwind-profile.css",
+    "vendorPath": "src/vendor/source-editor/ui-profile/tailwind-profile.css"
+  },
+  "files": [
+    {
+      "sha256": "76f6e8a5b9ebc66c2289ba7aa9d16e200cbb116e27b3117d7de18c18cc23398e",
+      "sourcePath": "packages/ui-profile/compat-consumers/react17-base-ui-jsx.d.ts",
+      "vendorPath": "src/vendor/source-editor/ui-profile/compat/react17-base-ui-jsx.d.ts"
+    },
+    {
+      "sha256": "99383a9b61cef0314525afd41b4ac97c72b2e1c58c1d9e3783d60fa8253cb185",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/button.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/button.tsx"
+    },
+    {
+      "sha256": "230acf536abe2c392af10b04933e6c28882f5d8b7ed640e4564ddfc509ecc83a",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/dropdown-menu.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/dropdown-menu.tsx"
+    },
+    {
+      "sha256": "ae4ad87e790d3d7c0190a84a0662331cf2320eae5badddb813e517869b87b9dc",
+      "sourcePath": "packages/ui-profile/normalized/src/lib/spfx-theme.ts",
+      "vendorPath": "src/vendor/source-editor/ui-profile/lib/spfx-theme.ts"
+    },
+    {
+      "sha256": "1855d4a6a8d909a016d44c186df14e2b4a50b74126051785fe8ec3a4944f079d",
+      "sourcePath": "packages/ui-profile/normalized/src/lib/ui-root.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/lib/ui-root.tsx"
+    },
+    {
+      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "sourcePath": "packages/ui-profile/normalized/src/lib/utils.ts",
+      "vendorPath": "src/vendor/source-editor/ui-profile/lib/utils.ts"
+    },
+    {
+      "sha256": "7695f776e34dd59e51673d7235ce6ffaa9de4e99eb802c1b8bf1bd0029dcb2be",
+      "sourcePath": "packages/ui-profile/generated/tailwind-profile.css",
+      "vendorPath": "src/vendor/source-editor/ui-profile/tailwind-profile.css"
+    },
+    {
+      "sha256": "356af67145a6bf1ab87576086a8e30f290808204e6341ad26f55559f2fd46383",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/combobox.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/combobox.tsx"
+    },
+    {
+      "sha256": "d758a96397d7dd0ff71570e0a21189b1c3f0ef11995de0917d3e1c01712ea986",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/input-group.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/input-group.tsx"
+    },
+    {
+      "sha256": "508573dcc4173acf76447a9f5d2f55c374214fd7b084faafd0c4cfc790f3ad2f",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/input.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/input.tsx"
+    },
+    {
+      "sha256": "c175dfb8d3f45fde78e3eb653b2a1ec19698bb7f44ebb46eef1b35314f03478b",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/select.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/select.tsx"
+    },
+    {
+      "sha256": "2c227acd5387eb28489f42f4481194667da0ff75eeaaa627dd3f43ad3d0a3067",
+      "sourcePath": "packages/ui-profile/normalized/src/components/ui/textarea.tsx",
+      "vendorPath": "src/vendor/source-editor/ui-profile/components/ui/textarea.tsx"
+    }
+  ],
+  "languages": [
+    "scss"
+  ],
+  "packageVersion": "0.1.0",
+  "preparedBaseUi": {
+    "contracts": [
+      {
+        "path": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/contract.json",
+        "sha256": "cdbbc140272e237e3f5450baae8afdaab2f56f14b48835b7bc42f76211b4a2aa"
+      },
+      {
+        "path": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/contract.json",
+        "sha256": "6500f7475790853273cfbbb10c1c570c054acd883db4031988b0001978aacfef"
+      },
+      {
+        "path": "packages/ui-profile/compat/base-ui-1.6.0/select-value/contract.json",
+        "sha256": "39bc2e24fea78e7e68f8518c217698489d7963c049d44cdb85ffaba539d66072"
+      }
+    ],
+    "deliveryFiles": [
+      {
+        "sha256": "cdbbc140272e237e3f5450baae8afdaab2f56f14b48835b7bc42f76211b4a2aa",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/contract.json",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/id-ownership/contract.json"
+      },
+      {
+        "sha256": "5156007294af6fd34194bda00f4c9a0d9d604041d72f2a9a154e0959dc07c94d",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.d.mts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.d.mts"
+      },
+      {
+        "sha256": "5156007294af6fd34194bda00f4c9a0d9d604041d72f2a9a154e0959dc07c94d",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.d.ts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.d.ts"
+      },
+      {
+        "sha256": "b5404bae5414f5792b0998117addaf9b79003b3b68a39400f1986a15268be4cd",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.js",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.js"
+      },
+      {
+        "sha256": "d29a72759b4f512710607030b03995be2cef831a77ee6aca578d18036fd2d926",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.mjs",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/id-ownership/source/spfx-id-ownership.mjs"
+      },
+      {
+        "sha256": "6500f7475790853273cfbbb10c1c570c054acd883db4031988b0001978aacfef",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/contract.json",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/contract.json"
+      },
+      {
+        "sha256": "ddb384ae9ff5f32dbec5d6ed56bac0f602abc4a4665159dae6d84878f60b591e",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/original/popupStoreUtils.js.fragment",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/original/popupStoreUtils.js.fragment"
+      },
+      {
+        "sha256": "2f6882b426cc8c2415d4faf3eece44a62acbf7aeedf56f8f51d6659b7c1bd360",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/original/popupStoreUtils.mjs.fragment",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/original/popupStoreUtils.mjs.fragment"
+      },
+      {
+        "sha256": "b7229c0038cdafef321a80a805e64e57ad214db9c4fda63a0764e8cd802c740b",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/transformed/popupStoreUtils.js.fragment",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/transformed/popupStoreUtils.js.fragment"
+      },
+      {
+        "sha256": "ff76c6fe3d11d76846623381a3eac5f793215b9b3e7547ef32a379e64149b0fe",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/transformed/popupStoreUtils.mjs.fragment",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/popup-lifecycle/transformed/popupStoreUtils.mjs.fragment"
+      },
+      {
+        "sha256": "39bc2e24fea78e7e68f8518c217698489d7963c049d44cdb85ffaba539d66072",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/select-value/contract.json",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/select-value/contract.json"
+      },
+      {
+        "sha256": "e6161cda8d353f98ae95af311fabc5ba6de9a0c6a69ba6446222961901177aeb",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/select-value/transformed/SelectValue.d.mts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/select-value/transformed/SelectValue.d.mts"
+      },
+      {
+        "sha256": "ffe2f23d80ea5c9859829d45e2540f7415f65979f5c11122d8815fd0a5c937db",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/select-value/transformed/SelectValue.d.ts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/select-value/transformed/SelectValue.d.ts"
+      },
+      {
+        "sha256": "22469dbd699381a169d6e02d5c080ba9d94b9d6567b7a5c41cb17f505e6a4ad7",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/select-value/upstream/SelectValue.d.mts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/select-value/upstream/SelectValue.d.mts"
+      },
+      {
+        "sha256": "acd4a1daff6df3526b17094f8f30ef3c9c19c9bd5bb95c3fa46a1b8037290778",
+        "sourcePath": "packages/ui-profile/compat/base-ui-1.6.0/select-value/upstream/SelectValue.d.ts",
+        "vendorPath": "src/vendor/source-editor/ui-profile/compat/base-ui-1.6.0/select-value/upstream/SelectValue.d.ts"
+      },
+      {
+        "sha256": "071df6ff0af2debfd0cbbdbdbd372ad6d94230242e6a3cb0f4f9e70c347ef736",
+        "sourcePath": "packages/ui-profile/dependency-closure.json",
+        "vendorPath": "src/vendor/source-editor/ui-profile/dependency-closure.json"
+      }
+    ],
+    "dependencyClosurePath": "packages/ui-profile/dependency-closure.json",
+    "dependencyClosureSha256": "071df6ff0af2debfd0cbbdbdbd372ad6d94230242e6a3cb0f4f9e70c347ef736",
+    "package": "@base-ui/react",
+    "version": "1.6.0"
+  },
+  "profileId": "source-editor-scss-react17-base-nova-v1",
+  "profileKind": "scss-only",
+  "runtimeContract": {
+    "sha256": "d0ac6b6667ea2a416b92c885f7a3c92de6460f73e041533e32b152395d1d0601",
+    "vendorPath": "src/vendor/source-editor/ui-profile/profile-contract.ts"
+  },
+  "schemaVersion": 1,
+  "sourceFiles": [
+    {
+      "sha256": "d3dacdd4162d831e6243ad43980efb149b988448a930ae16b4be21292135a117",
+      "sourcePath": "packages/source-editor-core/src/index.ts",
+      "vendorPath": "src/vendor/source-editor/sourceEditorCore.ts"
+    },
+    {
+      "sha256": "66cb50c0bea1e733571731ae19814fd63feeb2a65e2085707448e160046dbf08",
+      "sourcePath": "packages/source-editor-react/src/SourceEditorField.tsx",
+      "vendorPath": "src/vendor/source-editor/SourceEditorField.tsx"
+    },
+    {
+      "sha256": "c43e76ae028f872cc94fa46699b185a04acf6c4f28e1b15d58098d9b6920c79b",
+      "sourcePath": "packages/source-editor-react/spfx-monaco-webpack.cjs",
+      "vendorPath": "src/vendor/source-editor/spfx-monaco-webpack.cjs"
+    },
+    {
+      "sha256": "97115146a15714d998521e120cbae6b2f9f90920bdcdd26c657dd7147d9a8258",
+      "sourcePath": "packages/source-editor-react/src/sourceEditorMonacoAdapter.scss-only.ts",
+      "vendorPath": "src/vendor/source-editor/sourceEditorMonacoAdapter.ts"
+    },
+    {
+      "sha256": "36f867ae8a2a5a61ff934afabc7689407e28ba877fe4e0435e53ed6ec6b0382c",
+      "sourcePath": "packages/source-editor-react/spfx-ui-profile-prepare.mjs",
+      "vendorPath": "src/vendor/source-editor/spfx-ui-profile-prepare.mjs"
+    },
+    {
+      "sha256": "83ef26534599c83cdfb4ba6eb3e4d958128318c29b8baeaee51199e0dee74a09",
+      "sourcePath": "packages/source-editor-react/spfx-ui-profile-gulp.cjs",
+      "vendorPath": "src/vendor/source-editor/spfx-ui-profile-gulp.cjs"
+    }
+  ],
+  "sourceProfile": {
+    "path": "packages/source-editor-react/ui-profile.json",
+    "sha256": "78565742386460fb726c9259669c70590ac28c155d171bce368053a620ab0842"
+  },
+  "surfaces": [
+    {
+      "components": [
+        "button",
+        "dropdown-menu"
+      ],
+      "consumer": "SourceEditorField"
+    },
+    {
+      "components": [
+        "combobox",
+        "input",
+        "input-group",
+        "select",
+        "textarea"
+      ],
+      "consumer": "BetterTextPropertyPane"
+    }
+  ],
+  "upstream": {
+    "profileId": "spfx-react17-base-nova-v1",
+    "profilePath": "packages/ui-profile/profile.json",
+    "profileSha256": "f451076dc28d609b892c5039d7abd5851aa67cc87368a1119730d373f1fc6464",
+    "provenancePath": "packages/ui-profile/provenance.json",
+    "provenanceSha256": "15ee3700f630c4620b4a84b9a67287280c90070bade7881f415cba062d733643"
+  }
+}

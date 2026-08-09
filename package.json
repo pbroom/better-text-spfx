@@ -12,21 +12,28 @@
     "build": "gulp bundle",
     "clean": "gulp clean",
     "test": "npm run test:source-editor-core && gulp test && npm run test:components",
-    "test:components": "tsc -p tsconfig.test.json && jest temp/jest/shared/text.test.js temp/jest/webparts/betterText/components/RichTextEditor.test.js --runInBand",
+    "pretest:components": "node src/vendor/source-editor/spfx-ui-profile-prepare.mjs --app-root . --profile-root src/vendor/source-editor/ui-profile",
+    "test:components": "tsc -p tsconfig.test.json && jest temp/jest/shared/text.test.js temp/jest/webparts/betterText/components/BetterTextPropertyPane.test.js temp/jest/webparts/betterText/components/RichTextEditor.test.js --runInBand",
     "test:source-editor-core": "node --no-warnings --experimental-strip-types --test scripts/source-editor-core.test.mjs",
     "serve": "gulp serve",
     "ship": "gulp clean && gulp bundle --ship && node scripts/copy-monaco-assets.mjs --app . && gulp package-solution --ship"
   },
   "dependencies": {
-    "@fluentui/react-components": "9.74.1",
+    "@base-ui/react": "1.6.0",
+    "@floating-ui/react-dom": "2.1.8",
     "@hugeicons/core-free-icons": "4.2.2",
     "@hugeicons/react": "1.1.9",
+    "@microsoft/sp-component-base": "1.21.1",
     "@microsoft/sp-core-library": "1.21.1",
     "@microsoft/sp-property-pane": "1.21.1",
     "@microsoft/sp-webpart-base": "1.21.1",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.25.0",
     "monaco-editor": "0.55.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "tailwind-merge": "3.6.0",
     "tslib": "2.3.1"
   },
   "devDependencies": {
@@ -46,5 +53,20 @@
     "gulp": "4.0.2",
     "jest": "25.4.0",
     "typescript": "5.3.3"
+  },
+  "overrides": {
+    "@babel/runtime": "7.29.7",
+    "@base-ui/utils": "0.3.1",
+    "@floating-ui/core": "1.7.5",
+    "@floating-ui/dom": "1.7.6",
+    "@floating-ui/react-dom": "2.1.8",
+    "@floating-ui/utils": "0.2.11",
+    "reselect": "5.2.0",
+    "use-sync-external-store": "1.6.0"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@base-ui/react(.*)$": "<rootDir>/temp/spfx-ui-profile/base-ui$1"
+    }
   }
 }
